@@ -2,7 +2,8 @@
 /* Everything that differs between the Android app, the iPhone home screen app and a desktop browser. */
 const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 const IS_IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-const nativePlugin=(()=>{const cache={};return n=>cache[n]||(cache[n]=window.Capacitor.registerPlugin(n));})();
+/* The app has no bundler, so use the plugin objects the Android shell injects (registerPlugin only exists in the npm bundle). */
+const nativePlugin=n=>window.Capacitor.Plugins[n];
 
 const blobBase64=blob=>new Promise((res,rej)=>{const r=new FileReader();r.onloadend=()=>res(String(r.result).split(',')[1]||'');r.onerror=()=>rej(r.error);r.readAsDataURL(blob);});
 function linkDownload(filename,blob){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
