@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Gaspari Gridiron NFL</string>
+    <string name="title_activity_main">Gaspari Gridiron NFL</string>
+    <string name="package_name">com.gaspari.gridiron.nfl</string>
+    <string name="custom_url_scheme">com.gaspari.gridiron.nfl</string>
+</resources>

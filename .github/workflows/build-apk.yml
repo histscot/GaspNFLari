@@ -1,0 +1,67 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync web app into Android project
+        run: npx cap sync android
+
+      # With the same signing key every time, a new APK installs over the old one and saves are kept.
+      - name: Restore signing key (if the secret is set)
+        if: env.KEYSTORE_B64 != ''
+        run: |
+          mkdir -p "$HOME/.android"
+          echo "$KEYSTORE_B64" | base64 -d > "$HOME/.android/debug.keystore"
+
+      - name: Warn when no signing key is set
+        if: env.KEYSTORE_B64 == ''
+        run: echo "::warning::No ANDROID_KEYSTORE_BASE64 secret. This APK has a one-off signature, so export your universe before uninstalling an older build. See README."
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon -PappVersionCode=${{ github.run_number }}
+
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Gaspari-Gridiron-NFL.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gaspari-Gridiron-NFL-APK
+          path: Gaspari-Gridiron-NFL.apk
+
+      - name: Publish to latest release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Gaspari Gridiron NFL (latest build)
+          files: Gaspari-Gridiron-NFL.apk
