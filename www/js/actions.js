@@ -26,6 +26,14 @@ async function saveFile(filename,data){
 }
 /* phones often grey out .json and .csv files when a type filter is set, so only filter images there */
 function pickFile(accept,multiple){return new Promise(res=>{const i=$('#filein');i.value='';i.accept=(IS_NATIVE||IS_IOS)&&!accept.startsWith('image')?'':accept;i.multiple=!!multiple;i.onchange=()=>res([...i.files]);i.click();});}
+const IMAGE_FILE=/\.(png|jpe?g|gif|webp|bmp|svg)$/i;
+function pickFolder(){return new Promise(res=>{const i=$('#folderin');i.value='';i.onchange=()=>res([...i.files]);i.click();});}
+/* only the folder's own images: a subfolder of old logos must not overwrite the current ones */
+async function bulkFolder(all){
+  const images=all.filter(f=>IMAGE_FILE.test(f.name)&&!f.name.startsWith('.')),top=images.filter(f=>(f.webkitRelativePath||f.name).split('/').length<=2);
+  if(top.length)await bulkLogos(top);
+  else toast(images.length?'The images are in subfolders. Choose the folder that holds the logo files themselves.':'No image files found in that folder.',true);
+}
 function csvRows(text){const rows=[];let row=[],cur='',q=false;const delim=text.split('\n')[0].includes('\t')?'\t':',';
   for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'){if(text[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=c;}else if(c==='"')q=true;else if(c===delim){row.push(cur);cur='';}else if(c==='\n'){row.push(cur);rows.push(row);row=[];cur='';}else if(c!=='\r')cur+=c;}
   row.push(cur);rows.push(row);return rows.filter(r=>r.some(x=>String(x).trim()!==''));}
@@ -257,6 +265,7 @@ async function onClick(e){
     /* logos */
     case 'uplogo':{const [f]=await pickFile('image/*');if(f)await uploadLogo(el.dataset.key,f);break;}
     case 'rmlogo':await setLogo(el.dataset.key,null);redraw();break;
+    case 'bulkfolder':{const fs=await pickFolder();if(fs.length)await bulkFolder(fs);break;}
     case 'bulk':{const fs=await pickFile('image/*',true);if(fs.length)await bulkLogos(fs);break;}
     /* league office */
     case 'addteam':{if(!structureOpen())break;
