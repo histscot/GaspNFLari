@@ -6,12 +6,12 @@ function seedTile(v,t,n,sub,cls){return '<button class="seedt '+(cls||'')+'" dat
 
 /* ============================== STANDINGS ============================== */
 function standTable(v,rows,o){
-  /* the two-up division cards drop PF, PA, Home and Away so nothing is cut off */
-  const full=!o.compact,head=['W','L','T','PCT'].concat(full?['PF','PA']:[],['Diff'],full?['Home','Away']:[],['Div','Conf','Strk']);
+  /* the two-up division cards drop PF and PA so nothing is cut off */
+  const full=!o.compact,head=['W','L','T','PCT'].concat(full?['PF','PA']:[],['Diff','Home','Away','Div','Conf','Strk']);
   let h='<div class="tw"><table'+(full?'':' class="compact"')+'><thead><tr><th></th><th class="l">Team</th>'+head.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>';
   rows.forEach((r,i)=>{const t=vTeam(v,r.id),res=r.res;let s='–';if(res.length){const c=res[res.length-1];let n=0;for(let k=res.length-1;k>=0&&res[k]===c;k--)n++;s=c+n;}
     const sd=o.seed&&o.seed[r.id],df=r.pf-r.pa;
-    const cells=[r.o.w,r.o.l,r.o.t,'<b>'+fmtPct(r.o)+'</b>'].concat(full?[r.pf,r.pa]:[],[(df>0?'+':'')+df],full?[recStr(r.home),recStr(r.away)]:[],[recStr(r.div),recStr(r.conf),s]);
+    const cells=[r.o.w,r.o.l,r.o.t,'<b>'+fmtPct(r.o)+'</b>'].concat(full?[r.pf,r.pa]:[],[(df>0?'+':'')+df,recStr(r.home),recStr(r.away),recStr(r.div),recStr(r.conf),s]);
     h+='<tr class="'+(sd?'in':'')+(o.cut===i+1?' cut':'')+'"><td class="rk">'+(sd||i+1)+'</td><td class="tm" style="--tc:'+safeColor(t.color)+'">'+tlink(t,'<span class="tmn">'+logo(t,o.sz||40)+'<span>'+esc(t.name)+'</span></span>')+'</td>'+cells.map(c=>'<td>'+c+'</td>').join('')+'</tr>';});
   return h+'</tbody></table></div>';
 }
